@@ -1,0 +1,16 @@
+{
+  "name": "newsroom-ai",
+  "version": "1.0.0",
+  "description": "Newsroom AI - Asisten Editing & Social Media untuk Wartawan",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Ready to deploy'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

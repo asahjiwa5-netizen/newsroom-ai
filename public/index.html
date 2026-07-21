@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsroom AI - Asisten Editing Berita</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #4f46e5;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .header .small-text {
+            color: #a0aec0;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            background: #f7fafc;
+            color: #4b5563;
+        }
+
+        .tab-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #edf2f7;
+        }
+
+        .tab-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            background: #f0f0f0;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Input Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            height: 320px;
+            padding: 16px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 8px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .result-section {
+            margin-bottom: 24px;
+            border-left: 4px solid;
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .result-section.quality {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+
+        .result-section.title {
+            border-color: #ea580c;
+            background: #fff7ed;
+        }
+
+        .result-section.article {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .result-section.social {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .result-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .result-section.quality .result-header h2 {
+            color: #4f46e5;
+        }
+
+        .result-section.title .result-header h2 {
+            color: #ea580c;
+        }
+
+        .result-section.article .result-header h2 {
+            color: #16a34a;
+        }
+
+        .result-section.social .result-header h2 {
+            color: #2563eb;
+        }
+
+        .result-subtitle {
+            font-size: 12px;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-section.quality .copy-btn:hover {
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .result-section.title .copy-btn:hover {
+            background: rgba(234, 88, 12, 0.1);
+        }
+
+        .result-section.article .copy-btn:hover {
+            background: rgba(22, 163, 74, 0.1);
+        }
+
+        .result-section.social .copy-btn:hover {
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .copy-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .result-box {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #2d3748;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .result-section.article .result-box {
+            max-height: 600px;
+        }
+
+        /* Info Boxes */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-box {
+            border-left: 4px solid;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .info-box.features {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .info-box.social {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .info-box h3 {
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .info-box.features h3 {
+            color: #1e40af;
+        }
+
+        .info-box.social h3 {
+            color: #166534;
+        }
+
+        .info-box ul {
+            list-style: none;
+        }
+
+        .info-box li {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn.secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background: #4b5563;
+        }
+
+        .action-btn.primary {
+            background: #16a34a;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #15803d;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group textarea {
+                height: 240px;
+            }
+
+            .tab-btn {
+                font-size: 12px;
+                padding: 12px 8px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .result-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .result-box::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .result-box::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        .result-box::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .copied-indicator {
+            display: inline-block;
+            color: #16a34a;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 Newsroom AI</h1>
+            <p>Asisten Editing & Social Media untuk Wartawan</p>
+            <p class="small-text">Powered by Claude AI | TRANSPLUS.ID</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('input')">📝 Input Artikel</button>
+            <button class="tab-btn" id="resultsTabBtn" onclick="switchTab('results')" disabled>✨ Hasil Proses</button>
+        </div>
+
+        <!-- Input Tab -->
+        <div id="input" class="tab-content active">
+            <div class="form-group">
+                <label for="articleInput">Tempel Artikel Anda Di Sini:</label>
+                <textarea id="articleInput" placeholder="Contoh: Pemerintah Kalimantan Selatan meluncurkan program ekonomi digital untuk UMKM lokal. Inisiatif ini bertujuan meningkatkan daya saing bisnis kecil menengah di era digital..."></textarea>
+                <div class="char-count">Jumlah karakter: <span id="charCount">0</span></div>
+            </div>
+            <button class="submit-btn" onclick="processArticle()">
+                <span id="btnText">🚀 Proses Editing</span>
+                <span id="spinner" class="spinner" style="display: none;"></span>
+            </button>
+        </div>
+
+        <!-- Results Tab -->
+        <div id="results" class="tab-content">
+            <div id="resultsContainer"></div>
+            <div class="action-buttons">
+                <button class="action-btn secondary" onclick="switchTab('input')">← Input Artikel Baru</button>
+                <button class="action-btn primary" onclick="copyAllResults()">📋 Copy Semua Hasil</button>
+            </div>
+        </div>
+
+        <!-- Info Boxes -->
+        <div class="info-grid">
+            <div class="info-box features">
+                <h3>📋 Fitur Editing & Judul:</h3>
+                <ul>
+                    <li>✓ Perbaikan grammar & ejaan</li>
+                    <li>✓ Optimasi lead berita</li>
+                    <li>✓ Perbaikan kalimat langsung/tidak langsung</li>
+                    <li>✓ Analisis susunan kalimat (standar jurnalistik)</li>
+                    <li>✓ Generate 5 pilihan judul menarik</li>
+                    <li>✓ Artikel utuh siap publish</li>
+                </ul>
+            </div>
+            <div class="info-box social">
+                <h3>📱 Platform Sosmed:</h3>
+                <ul>
+                    <li>✓ Instagram (caption + hashtag)</li>
+                    <li>✓ Facebook (deskripsi + hashtag)</li>
+                    <li>✓ Twitter/X (tweet + hashtag)</li>
+                    <li>✓ TikTok (hook + hashtag)</li>
+                    <li>✓ Semua hasil bisa dicopy ke clipboard</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Newsroom AI v1.0 | Dikembangkan untuk TRANSPLUS.ID</p>
+            <p style="margin-top: 8px;">💡 Tip: Gunakan artikel atau berita sendiri untuk hasil terbaik</p>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = null;
+
+        // Detect base URL for API
+        const API_BASE = window.location.origin;
+
+        // Update character count
+        document.getElementById('articleInput').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'results' && currentResults) {
+                document.getElementById('resultsTabBtn').classList.add('active');
+            }
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, section) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showCopySuccess(section);
+                    }).catch(() => {
+                        fallbackCopy(text, section);
+                    });
+                } else {
+                    fallbackCopy(text, section);
+                }
+            } catch (error) {
+                fallbackCopy(text, section);
+            }
+        }
+
+        function fallbackCopy(text, section) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showCopySuccess(section);
+            } catch (error) {
+                alert('Gagal copy. Silakan copy manual dengan Ctrl+C/Cmd+C');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showCopySuccess(section) {
+            const indicator = document.getElementById(`copy-${section}`);
+            if (indicator) {
+                indicator.style.display = 'inline-block';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        function copyAllResults() {
+            if (!currentResults) return;
+            const allText = `${currentResults.title}\n\n${currentResults.fullArticle}\n\n${currentResults.social}`;
+            copyToClipboard(allText, 'all');
+        }
+
+        // Process article
+        async function processArticle() {
+            const articleText = document.getElementById('articleInput').value.trim();
+            
+            if (!articleText) {
+                alert('Masukkan artikel terlebih dahulu!');
+                return;
+            }
+
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+            const submitBtn = document.querySelector('.submit-btn');
+
+            btnText.textContent = 'Sedang memproses...';
+            spinner.style.display = 'inline-block';
+            submitBtn.disabled = true;
+
+            try {
+                // Process semua tipe sekaligus
+                const processTypes = ['quality', 'title', 'fullArticle', 'social'];
+                const results = {};
+
+                for (const processType of processTypes) {
+                    const response = await fetch(`${API_BASE}/api/process`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            articleText: articleText,
+                            processType: processType
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'API error');
+                    }
+
+                    const data = await response.json();
+                    results[processType] = data.result;
+                }
+
+                // Store results
+                currentResults = {
+                    quality: results.quality,
+                    title: results.title,
+                    fullArticle: results.fullArticle,
+                    social: results.social,
+                    timestamp: new Date().toLocaleTimeString('id-ID')
+                };
+
+                // Display results
+                displayResults();
+
+                // Switch to results tab
+                document.getElementById('results').classList.add('active');
+                document.getElementById('input').classList.remove('active');
+                document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                document.getElementById('resultsTabBtn').classList.add('active');
+                document.getElementById('resultsTabBtn').disabled = false;
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error(error);
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = `<div class="error-message">❌ Error: ${error.message}<br>Pastikan API key Anthropic sudah dikonfigurasi di Vercel.</div>`;
+            } finally {
+                btnText.textContent = '🚀 Proses Editing';
+                spinner.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Display results
+        function displayResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="timestamp">Diproses pada: ${currentResults.timestamp}</div>
+
+                <div class="result-section quality">
+                    <div class="result-header">
+                        <h2>1️⃣ Hasil Editing Artikel</h2>
+                        <button class="copy-btn" onclick="copyToClipboard(\`${currentResults.quality.replace(/`/g, '\\`')}\`, 'quality')" title="Copy ke clipboard">
+                            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span id="copy-quality" class="copied-indicator" style="display: none;">✓ Copied</span>
+                        </button>
+                    </div>
+                    <p class="result-subtitle">Perbaikan grammar, ejaan, lead, kalimat, dan susunan kalimat jurnalistik</p>
+                    <div class="result-box">${currentResults.quality}</div>
+                </div>
+
+                <div class="result-section title">
+                    <div class="result-header">
+                        <h2>2️⃣ Hasil Pilihan Judul</h2>
+                        <button class="copy-btn" onclick="copyToClipboard(\`${currentResults.title.replace(/`/g, '\\`')}\`, 'title')" title="Copy ke clipboard">
+                            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span id="copy-title" class="copied-indicator" style="display: none;">✓ Copied</span>
+                        </button>
+                    </div>
+                    <p class="result-subtitle">5 pilihan judul dengan berbagai strategi</p>
+                    <div class="result-box">${currentResults.title}</div>
+                </div>
+
+                <div class="result-section article">
+                    <div class="result-header">
+                        <h2>3️⃣ Hasil Berita Utuh yang Sudah Diperbaiki</h2>
+                        <button class="copy-btn" onclick="copyToClipboard(\`${currentResults.fullArticle.replace(/`/g, '\\`')}\`, 'fullArticle')" title="Copy ke clipboard">
+                            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span id="copy-fullArticle" class="copied-indicator" style="display: none;">✓ Copied</span>
+                        </button>
+                    </div>
+                    <p class="result-subtitle">Judul + isi artikel lengkap siap publish</p>
+                    <div class="result-box">${currentResults.fullArticle}</div>
+                </div>
+
+                <div class="result-section social">
+                    <div class="result-header">
+                        <h2>4️⃣ Hasil Konten Media Sosial</h2>
+                        <button class="copy-btn" onclick="copyToClipboard(\`${currentResults.social.replace(/`/g, '\\`')}\`, 'social')" title="Copy ke clipboard">
+                            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span id="copy-social" class="copied-indicator" style="display: none;">✓ Copied</span>
+                        </button>
+                    </div>
+                    <p class="result-subtitle">Caption dan hashtag untuk Instagram, Facebook, Twitter/X, TikTok</p>
+                    <div class="result-box">${currentResults.social}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
